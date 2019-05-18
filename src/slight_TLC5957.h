@@ -294,6 +294,11 @@ public:
         uint8_t spi_mosi = MOSI,
         uint8_t spi_miso = MISO
     );
+    slight_TLC5957(
+        const slight_TLC5957& tlc
+    );
+    slight_TLC5957& operator=(const slight_TLC5957& newObj);
+
     ~slight_TLC5957();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

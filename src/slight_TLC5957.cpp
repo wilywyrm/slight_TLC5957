@@ -216,7 +216,7 @@ slight_TLC5957::slight_TLC5957(
     // 1kHz
     // spi_baudrate = (1 *    1 *  1000);
     // 4MHz
-    spi_baudrate = (4 * 1000 *  1000);
+    spi_baudrate = (uint32_t) (4 * 1000 * 1000);
 }
 
 slight_TLC5957::~slight_TLC5957() {
@@ -224,6 +224,43 @@ slight_TLC5957::~slight_TLC5957() {
     free(buffer);
     free(_buffer_fc);
 }
+
+slight_TLC5957::slight_TLC5957(
+    const slight_TLC5957& tlc
+):
+    pixel_count(tlc.pixel_count),
+    channel_count(pixel_count * COLORS_PER_PIXEL),
+    chip_count(
+        (pixel_count / PIXEL_PER_CHIP) +
+        // check if we pixels for a part of an chip
+        ((pixel_count % PIXEL_PER_CHIP) > 0 ? 1 : 0)),
+    buffer_byte_count(chip_count * CHIP_GS_BUFFER_BYTE_COUNT),
+    buffer(reinterpret_cast<uint8_t*>(calloc(buffer_byte_count, 1))),
+    _buffer_fc_byte_count(chip_count * CHIP_BUFFER_BYTE_COUNT),
+    _buffer_fc(reinterpret_cast<uint8_t*>(calloc(_buffer_fc_byte_count, 1))),
+    _latch(tlc._latch),
+    _gsclk(tlc._gsclk),
+    _spi_clock(tlc._spi_clock),
+    _spi_mosi(tlc._spi_mosi),
+    _spi_miso(tlc._spi_miso)
+{
+    ready = tlc.ready;
+    spi_baudrate = tlc.spi_baudrate;
+    memcpy(this->buffer, tlc.buffer, tlc.buffer_byte_count);
+    memcpy(this->_buffer_fc, tlc._buffer_fc, tlc._buffer_fc_byte_count);
+}
+
+
+slight_TLC5957& slight_TLC5957::operator=(const slight_TLC5957& newObj) {
+    if (this == &newObj) {
+        return *this;
+    } else {
+        slight_TLC5957* tlc;
+        tlc = new slight_TLC5957(newObj);
+        delete this;
+        return *tlc;
+    }
+};
 
 
 void slight_TLC5957::begin() {
